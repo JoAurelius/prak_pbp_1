@@ -7,7 +7,7 @@ import (
 )
 
 func GetAllTransaction(w http.ResponseWriter, r *http.Request) {
-	db := connect()
+	db := Connect()
 	defer db.Close()
 
 	query := "SELECT * from products"
@@ -45,6 +45,7 @@ func GetAllTransaction(w http.ResponseWriter, r *http.Request) {
 		response.Status = 204
 		response.Message = "Error array is empty"
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNoContent)
 		json.NewEncoder(w).Encode(response)
 	}
 
