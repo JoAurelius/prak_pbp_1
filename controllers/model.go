@@ -45,7 +45,7 @@ type Transaction struct {
 	Quantity  int `json:"qyt"`
 }
 
-type Transactionesponse struct {
+type TransactionResponse struct {
 	Status  int         `json:"status"`
 	Message string      `json:"message"`
 	Data    Transaction `json:"data"`
@@ -57,7 +57,7 @@ type TransactionsResponse struct {
 	Data    []Transaction `json:"data"`
 }
 
-type ErrorResponse struct {
+type GeneralResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 }
