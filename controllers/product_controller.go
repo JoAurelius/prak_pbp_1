@@ -76,20 +76,16 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		QeuryErrorResponse(w)
 		return
 	}
-	var product Product
-	product.Name = r.Form.Get("name")
-	product.Price, _ = strconv.Atoi(r.Form.Get("age"))
 	vars := mux.Vars(r)
-	productID := vars["product_id"]
-
-	if product.Name == "" {
-		product.Name = GetProduct(productID, w).Name
+	var product Product = GetProduct(vars["product_id"], w)
+	if (r.Form.Get("name")) != "" {
+		product.Name = r.Form.Get("name")
 	}
-	if product.Price == 0 {
-		product.Price = GetProduct(productID, w).Price
+	var temp, _ = strconv.Atoi(r.Form.Get("price"))
+	if temp != 0 {
+		product.Price = temp
 	}
-
-	result, _ := db.Exec("UPDATE products SET name = ?, price = ? WHERE id = ?", product.Name, product.Price, productID)
+	result, _ := db.Exec("UPDATE products SET name = ?, price = ? WHERE id = ?", product.Name, product.Price, product.ID)
 
 	num, _ := result.RowsAffected()
 

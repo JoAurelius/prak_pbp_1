@@ -80,24 +80,22 @@ func UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 		QeuryErrorResponse(w)
 		return
 	}
-	var transaction Transaction
-	transaction.UserID, _ = strconv.Atoi(r.Form.Get("user_id"))
-	transaction.ProductID, _ = strconv.Atoi(r.Form.Get("product_id"))
-	transaction.Quantity, _ = strconv.Atoi(r.Form.Get("qyt"))
 	vars := mux.Vars(r)
-	productID := vars["transaction_id"]
+	var transaction Transaction = GetTransaction(vars["transaction_id"], w)
+	var userid, _ = strconv.Atoi(r.Form.Get("age"))
+	var productid, _ = strconv.Atoi(r.Form.Get("age"))
+	var qyt, _ = strconv.Atoi(r.Form.Get("age"))
+	if userid != 0 {
+		transaction.UserID = userid
+	}
+	if productid != 0 {
+		transaction.ProductID = productid
+	}
+	if qyt != 0 {
+		transaction.Quantity = qyt
+	}
 
-	if transaction.UserID == 0 {
-		transaction.UserID = GetTransaction(productID, w).UserID
-	}
-	if transaction.ProductID == 0 {
-		transaction.ProductID = GetTransaction(productID, w).ProductID
-	}
-	if transaction.Quantity == 0 {
-		transaction.Quantity = GetTransaction(productID, w).Quantity
-	}
-
-	result, _ := db.Exec("UPDATE transaction SET userID = ?, productId = ?, quantity = ? WHERE id = ?", transaction.ProductID, transaction.ProductID, transaction.Quantity, productID)
+	result, _ := db.Exec("UPDATE transaction SET userID = ?, productId = ?, quantity = ? WHERE id = ?", transaction.ProductID, transaction.ProductID, transaction.Quantity, transaction.ID)
 
 	num, _ := result.RowsAffected()
 
@@ -124,7 +122,7 @@ func InsertTransaction(w http.ResponseWriter, r *http.Request) {
 	transaction.ProductID, _ = strconv.Atoi(r.Form.Get("product_id"))
 	transaction.Quantity, _ = strconv.Atoi(r.Form.Get("quantity"))
 
-	result, _ := db.Exec("insert into transaction (UserID, TransactionID, Quantity) values (?, ?, ?)",
+	result, _ := db.Exec("insert into transaction (UserID, ProductID, Quantity) values (?, ?, ?)",
 		transaction.UserID, transaction.ProductID, transaction.Quantity)
 
 	num, _ := result.RowsAffected()
