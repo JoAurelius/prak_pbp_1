@@ -154,3 +154,147 @@ func GetTransaction(transaction_id string, w http.ResponseWriter) Transaction {
 	}
 	return transaction
 }
+
+//Get 1 detailed transaction by transactionID
+func GetDetailedTransaction(w http.ResponseWriter, r *http.Request) {
+	db := Connect()
+	defer db.Close()
+	vars := mux.Vars(r)
+	transactionID := vars["transaction_id"]
+	query := DetailedTransactionQuery() + "WHERE transaction.id = " + transactionID
+	rows, _ := db.Query(query)
+	var transaction DetailedTransaction
+	var transactions []DetailedTransaction
+	for rows.Next() {
+		if err := rows.Scan(&transaction.ID,
+			&transaction.DataUser.ID,
+			&transaction.DataUser.Name,
+			&transaction.DataUser.Age,
+			&transaction.DataUser.Address,
+			&transaction.DataProduct.ID,
+			&transaction.DataProduct.Name,
+			&transaction.DataProduct.Price,
+			&transaction.Quantity); err != nil {
+			log.Fatal(err.Error())
+		} else {
+			transactions = append(transactions, transaction)
+		}
+	}
+	var response DetailedTransactionResponse
+	response.Status = 200
+	response.Message = "Sucess"
+	response.Data = transaction
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+//Get All detailed transaction
+func GetAllDetailedTransaction(w http.ResponseWriter, r *http.Request) {
+	db := Connect()
+	defer db.Close()
+	query := DetailedTransactionQuery()
+	rows, _ := db.Query(query)
+	var transaction DetailedTransaction
+	var transactions []DetailedTransaction
+	for rows.Next() {
+		if err := rows.Scan(&transaction.ID,
+			&transaction.DataUser.ID,
+			&transaction.DataUser.Name,
+			&transaction.DataUser.Age,
+			&transaction.DataUser.Address,
+			&transaction.DataProduct.ID,
+			&transaction.DataProduct.Name,
+			&transaction.DataProduct.Price,
+			&transaction.Quantity); err != nil {
+			log.Fatal(err.Error())
+		} else {
+			transactions = append(transactions, transaction)
+		}
+	}
+	if len(transactions) > 1 {
+		var response DetailedTransactionsResponse
+		response.Status = 200
+		response.Message = "Sucess"
+		response.Data = transactions
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	} else if len(transactions) == 1 {
+		var response DetailedTransactionResponse
+		response.Status = 200
+		response.Message = "Sucess"
+		response.Data = transaction
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	} else {
+		var response GeneralResponse
+		response.Status = 204
+		response.Message = "Error array is empty"
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNoContent)
+		json.NewEncoder(w).Encode(response)
+	}
+}
+
+//Get All detailed transaction from 1 user
+func GetDetailedTransactionFromUser(w http.ResponseWriter, r *http.Request) {
+	db := Connect()
+	defer db.Close()
+	vars := mux.Vars(r)
+	userID := vars["user_id"]
+	query := DetailedTransactionQuery() + "WHERE users.ID = " + userID
+	rows, _ := db.Query(query)
+	var transaction DetailedTransaction
+	var transactions []DetailedTransaction
+	for rows.Next() {
+		if err := rows.Scan(&transaction.ID,
+			&transaction.DataUser.ID,
+			&transaction.DataUser.Name,
+			&transaction.DataUser.Age,
+			&transaction.DataUser.Address,
+			&transaction.DataProduct.ID,
+			&transaction.DataProduct.Name,
+			&transaction.DataProduct.Price,
+			&transaction.Quantity); err != nil {
+			log.Fatal(err.Error())
+		} else {
+			transactions = append(transactions, transaction)
+		}
+	}
+	if len(transactions) > 1 {
+		var response DetailedTransactionsResponse
+		response.Status = 200
+		response.Message = "Sucess"
+		response.Data = transactions
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	} else if len(transactions) == 1 {
+		var response DetailedTransactionResponse
+		response.Status = 200
+		response.Message = "Sucess"
+		response.Data = transaction
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	} else {
+		var response GeneralResponse
+		response.Status = 204
+		response.Message = "Error array is empty"
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNoContent)
+		json.NewEncoder(w).Encode(response)
+	}
+}
+
+func DetailedTransactionQuery() string {
+	return `SELECT transaction.ID, 
+	users.ID, 
+	users.Name, 
+	users.Age, 
+	users.Address, 
+	products.ID, 
+	products.Name, 
+	products.Price, 
+	Quantity
+FROM transaction
+JOIN users ON transaction.UserID = users.ID
+JOIN products ON transaction.ProductID = products.ID`
+}

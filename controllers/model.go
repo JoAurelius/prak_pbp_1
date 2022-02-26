@@ -61,3 +61,22 @@ type GeneralResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 }
+
+type DetailedTransaction struct {
+	ID          int     `json:"transaction_id"`
+	DataUser    User    `json:"User"`
+	DataProduct Product `json:"Product"`
+	Quantity    int     `json:"quantity"`
+}
+
+type DetailedTransactionResponse struct {
+	Status  int                 `json:"status"`
+	Message string              `json:"message"`
+	Data    DetailedTransaction `json:"Data"`
+}
+
+type DetailedTransactionsResponse struct {
+	Status  int                   `json:"status"`
+	Message string                `json:"message"`
+	Data    []DetailedTransaction `json:"Data"`
+}

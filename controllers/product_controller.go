@@ -48,26 +48,27 @@ func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
-func DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	db := Connect()
-	defer db.Close()
 
-	err := r.ParseForm()
-	if err != nil {
-		QeuryErrorResponse(w)
-		return
-	}
+// func DeleteProduct(w http.ResponseWriter, r *http.Request) {
+// 	db := Connect()
+// 	defer db.Close()
 
-	vars := mux.Vars(r)
-	productID := vars["product_id"]
+// 	err := r.ParseForm()
+// 	if err != nil {
+// 		QeuryErrorResponse(w)
+// 		return
+// 	}
 
-	_, errQuery := db.Exec("DELETE FROM products WHERE id=?", productID)
-	if errQuery == nil {
-		sendSuccessResponse(w)
-	} else {
-		EmptyArrayErrorResponse(w)
-	}
-}
+// 	vars := mux.Vars(r)
+// 	productID := vars["product_id"]
+
+// 	_, errQuery := db.Exec("DELETE FROM products WHERE id=?", productID)
+// 	if errQuery == nil {
+// 		sendSuccessResponse(w)
+// 	} else {
+// 		EmptyArrayErrorResponse(w)
+// 	}
+// }
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	db := Connect()
 	defer db.Close()

@@ -14,7 +14,10 @@ func main() {
 
 	router.HandleFunc("/users", controllers.GetAllUsers).Methods("GET")
 	router.HandleFunc("/products", controllers.GetAllProducts).Methods("GET")
-	router.HandleFunc("/transactions", controllers.GetAllTransaction).Methods("GET")
+	// router.HandleFunc("/transactions", controllers.GetAllTransaction).Methods("GET")
+	router.HandleFunc("/transactions", controllers.GetAllDetailedTransaction).Methods("GET")
+	router.HandleFunc("/transactions/{transaction_id}", controllers.GetDetailedTransaction).Methods("GET")
+	router.HandleFunc("/users/{user_id}/transactions", controllers.GetDetailedTransaction).Methods("GET")
 
 	router.HandleFunc("/users/{user_id}", controllers.DeleteUser).Methods("DELETE")
 	router.HandleFunc("/products/{product_id}", controllers.DeleteProduct).Methods("DELETE")
