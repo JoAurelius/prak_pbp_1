@@ -16,7 +16,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.Query(query)
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		return
 	}
 
@@ -24,7 +24,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	var users []User
 	for rows.Next() {
 		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address); err != nil {
-			QeuryErrorResponse(w)
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 			return
 		} else {
 			users = append(users, user)
@@ -45,7 +45,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 
 }
@@ -73,7 +73,7 @@ func InsertNewUser(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 
@@ -92,9 +92,9 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	_, errQuery := db.Exec("DELETE FROM users WHERE id=?", userID)
 
 	if errQuery == nil {
-		sendSuccessResponse(w)
+		SendSuccessResponse(200, "Delete Success", http.StatusAccepted, w)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +102,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	err := r.ParseForm()
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		return
 	}
 
@@ -131,7 +131,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 func GetUser(user_id string, w http.ResponseWriter) User {
@@ -141,11 +141,11 @@ func GetUser(user_id string, w http.ResponseWriter) User {
 	query := "SELECT * from users WHERE ID = " + user_id
 	rows, err := db.Query(query)
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 	for rows.Next() {
 		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address); err != nil {
-			QeuryErrorResponse(w)
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		}
 	}
 	return user

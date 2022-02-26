@@ -16,7 +16,7 @@ func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.Query(query)
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		return
 	}
 
@@ -24,7 +24,7 @@ func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 	var products []Product
 	for rows.Next() {
 		if err := rows.Scan(&product.ID, &product.Name, &product.Price); err != nil {
-			QeuryErrorResponse(w)
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		} else {
 			products = append(products, product)
 		}
@@ -44,7 +44,7 @@ func GetAllProducts(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		EmptyArrayErrorResponse(w)
+		SendErrorResponse(204, "Array Empty", http.StatusNoContent, w)
 	}
 
 }
@@ -74,7 +74,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	err := r.ParseForm()
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		return
 	}
 	vars := mux.Vars(r)
@@ -98,7 +98,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 func InserProduct(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +124,7 @@ func InserProduct(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Empty Array", http.StatusBadRequest, w)
 	}
 }
 func GetProduct(product_id string, w http.ResponseWriter) Product {
@@ -134,12 +134,49 @@ func GetProduct(product_id string, w http.ResponseWriter) Product {
 	query := "SELECT * from products WHERE ID = " + product_id
 	rows, err := db.Query(query)
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 	for rows.Next() {
 		if err := rows.Scan(&product.ID, &product.Name, &product.Price); err != nil {
-			QeuryErrorResponse(w)
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		}
 	}
 	return product
+}
+func DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	db := Connect()
+	defer db.Close()
+
+	err := r.ParseForm()
+	if err != nil {
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+		return
+	}
+
+	vars := mux.Vars(r)
+	productID := vars["product_id"]
+
+	result, errQuery := db.Exec("DELETE FROM transaction WHERE ProductID = ?", productID)
+	if errQuery != nil {
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+		return
+	}
+	num, _ := result.RowsAffected()
+
+	if num != 0 {
+		result, errQuery := db.Exec("DELETE FROM products WHERE id=?", productID)
+		if errQuery == nil {
+			SendSuccessResponse(200, "Delete Product Success", http.StatusAccepted, w)
+		} else {
+			SendErrorResponse(404, "Delete Query from Product Error", http.StatusBadRequest, w)
+			return
+		}
+		num, _ := result.RowsAffected()
+		if num != 0 {
+			SendSuccessResponse(200, "Delete Product Success", http.StatusAccepted, w)
+		} else {
+			SendErrorResponse(204, "No Delete Row", http.StatusNoContent, w)
+			return
+		}
+	}
 }

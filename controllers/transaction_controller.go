@@ -67,9 +67,9 @@ func DeleteTransaction(w http.ResponseWriter, r *http.Request) {
 
 	_, errQuery := db.Exec("DELETE FROM transaction WHERE id=?", transactionId)
 	if errQuery == nil {
-		sendSuccessResponse(w)
+		SendSuccessResponse(200, "Delete Success", http.StatusAccepted, w)
 	} else {
-		EmptyArrayErrorResponse(w)
+		SendErrorResponse(204, "Emtpy Array", http.StatusNoContent, w)
 	}
 }
 func UpdateTransaction(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +77,7 @@ func UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	err := r.ParseForm()
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		return
 	}
 	vars := mux.Vars(r)
@@ -107,7 +107,7 @@ func UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 func InsertTransaction(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +135,7 @@ func InsertTransaction(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 func GetTransaction(transaction_id string, w http.ResponseWriter) Transaction {
@@ -145,11 +145,11 @@ func GetTransaction(transaction_id string, w http.ResponseWriter) Transaction {
 	query := "SELECT * from transaction WHERE ID = " + transaction_id
 	rows, err := db.Query(query)
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 	for rows.Next() {
 		if err := rows.Scan(&transaction.ID, &transaction.UserID, &transaction.ProductID, &transaction.Quantity); err != nil {
-			QeuryErrorResponse(w)
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		}
 	}
 	return transaction
