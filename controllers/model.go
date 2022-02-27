@@ -6,6 +6,8 @@ type User struct {
 	Age      int    `json:"age"`
 	Address  string `json:"address`
 	UserType int    `json:"type"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type UserResponse struct {

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -141,12 +142,37 @@ func GetUser(user_id string, w http.ResponseWriter) User {
 	query := "SELECT * from users WHERE ID = " + user_id
 	rows, err := db.Query(query)
 	if err != nil {
-		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+		SendErrorResponse(404, "Query Error ID NOT FOUN", http.StatusBadRequest, w)
+	} else {
+		SendSuccessResponse(200, "Query Success", http.StatusAccepted, w)
 	}
 	for rows.Next() {
-		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address); err != nil {
-			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address, &user.Email, &user.Password); err != nil {
+			SendErrorResponse(404, "ID NOT FOUND", http.StatusBadRequest, w)
+		} else {
+			SendSuccessResponse(200, user.Email+" "+user.Password, http.StatusAccepted, w)
 		}
 	}
 	return user
+}
+func Login(w http.ResponseWriter, r *http.Request) {
+	db := Connect()
+	defer db.Close()
+	err := r.ParseForm()
+	if err != nil {
+		return
+	}
+
+	vars := mux.Vars(r)
+	var user = GetUser(vars["user_id"], w)
+
+	var email = r.Form.Get("email")
+	var password = r.Form.Get("password")
+	fmt.Print(email)
+	fmt.Print(password)
+	if user.Password == password && user.Email == email {
+		SendSuccessResponse(200, "Login Success", http.StatusAccepted, w)
+	} else {
+		SendErrorResponse(400, email+password, http.StatusBadRequest, w)
+	}
 }

@@ -161,7 +161,7 @@ func GetDetailedTransaction(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	vars := mux.Vars(r)
 	transactionID := vars["transaction_id"]
-	query := DetailedTransactionQuery() + "WHERE transaction.id = " + transactionID
+	query := DetailedTransactionQuery() + " WHERE transaction.id = " + transactionID
 	rows, _ := db.Query(query)
 	var transaction DetailedTransaction
 	var transactions []DetailedTransaction
@@ -206,7 +206,8 @@ func GetAllDetailedTransaction(w http.ResponseWriter, r *http.Request) {
 			&transaction.DataProduct.Name,
 			&transaction.DataProduct.Price,
 			&transaction.Quantity); err != nil {
-			log.Fatal(err.Error())
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+			return
 		} else {
 			transactions = append(transactions, transaction)
 		}
@@ -241,7 +242,7 @@ func GetDetailedTransactionFromUser(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	vars := mux.Vars(r)
 	userID := vars["user_id"]
-	query := DetailedTransactionQuery() + "WHERE users.ID = " + userID
+	query := DetailedTransactionQuery() + " WHERE users.ID = " + userID
 	rows, _ := db.Query(query)
 	var transaction DetailedTransaction
 	var transactions []DetailedTransaction
@@ -255,7 +256,8 @@ func GetDetailedTransactionFromUser(w http.ResponseWriter, r *http.Request) {
 			&transaction.DataProduct.Name,
 			&transaction.DataProduct.Price,
 			&transaction.Quantity); err != nil {
-			log.Fatal(err.Error())
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+			return
 		} else {
 			transactions = append(transactions, transaction)
 		}

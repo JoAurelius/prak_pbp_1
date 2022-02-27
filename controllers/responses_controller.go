@@ -14,10 +14,10 @@ func SendErrorResponse(status int, errMsg string, header int, w http.ResponseWri
 	json.NewEncoder(w).Encode(response)
 }
 
-func SendSuccessResponse(status int, errMsg string, header int, w http.ResponseWriter) {
+func SendSuccessResponse(status int, msg string, header int, w http.ResponseWriter) {
 	var response GeneralResponse
 	response.Status = 200
-	response.Message = "Success"
+	response.Message = msg
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }

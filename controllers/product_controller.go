@@ -178,5 +178,7 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 			SendErrorResponse(204, "No Delete Row", http.StatusNoContent, w)
 			return
 		}
+	} else {
+		SendErrorResponse(204, "No Delete Row", http.StatusBadRequest, w)
 	}
 }
