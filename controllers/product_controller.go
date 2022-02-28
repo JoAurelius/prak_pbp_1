@@ -139,6 +139,8 @@ func GetProduct(product_id string, w http.ResponseWriter) Product {
 	for rows.Next() {
 		if err := rows.Scan(&product.ID, &product.Name, &product.Price); err != nil {
 			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+		} else {
+			SendSuccessResponse(200, "Product Selected", 200, w)
 		}
 	}
 	return product

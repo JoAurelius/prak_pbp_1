@@ -110,34 +110,35 @@ func UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
-func InsertTransaction(w http.ResponseWriter, r *http.Request) {
-	db := Connect()
-	defer db.Close()
-	err := r.ParseForm()
-	if err != nil {
-		return
-	}
-	var transaction Transaction
-	transaction.UserID, _ = strconv.Atoi(r.Form.Get("user_id"))
-	transaction.ProductID, _ = strconv.Atoi(r.Form.Get("product_id"))
-	transaction.Quantity, _ = strconv.Atoi(r.Form.Get("quantity"))
 
-	result, _ := db.Exec("insert into transaction (UserID, ProductID, Quantity) values (?, ?, ?)",
-		transaction.UserID, transaction.ProductID, transaction.Quantity)
+// func InsertTransaction(w http.ResponseWriter, r *http.Request) {
+// 	db := Connect()
+// 	defer db.Close()
+// 	err := r.ParseForm()
+// 	if err != nil {
+// 		return
+// 	}
+// 	var transaction Transaction
+// 	transaction.UserID, _ = strconv.Atoi(r.Form.Get("user_id"))
+// 	transaction.ProductID, _ = strconv.Atoi(r.Form.Get("product_id"))
+// 	transaction.Quantity, _ = strconv.Atoi(r.Form.Get("quantity"))
 
-	num, _ := result.RowsAffected()
+// 	result, _ := db.Exec("insert into transaction (UserID, ProductID, Quantity) values (?, ?, ?)",
+// 		transaction.UserID, transaction.ProductID, transaction.Quantity)
 
-	var response TransactionResponse
-	if num != 0 {
-		response.Status = 200
-		response.Message = "Success"
-		response.Data = transaction
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
-	} else {
-		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
-	}
-}
+// 	num, _ := result.RowsAffected()
+
+// 	var response TransactionResponse
+// 	if num != 0 {
+// 		response.Status = 200
+// 		response.Message = "Success"
+// 		response.Data = transaction
+// 		w.Header().Set("Content-Type", "application/json")
+// 		json.NewEncoder(w).Encode(response)
+// 	} else {
+// 		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+// 	}
+// }
 func GetTransaction(transaction_id string, w http.ResponseWriter) Transaction {
 	db := Connect()
 	defer db.Close()
@@ -299,4 +300,61 @@ func DetailedTransactionQuery() string {
 FROM transaction
 JOIN users ON transaction.UserID = users.ID
 JOIN products ON transaction.ProductID = products.ID`
+}
+
+func InsertTransaction(w http.ResponseWriter, r *http.Request) {
+	db := Connect()
+	defer db.Close()
+	err := r.ParseForm()
+	if err != nil {
+		return
+	}
+	var transaction Transaction
+	transaction.UserID, _ = strconv.Atoi(r.Form.Get("user_id"))
+	transaction.ProductID, _ = strconv.Atoi(r.Form.Get("product_id"))
+	transaction.Quantity, _ = strconv.Atoi(r.Form.Get("quantity"))
+
+	var product Product
+	var products []Product
+	query := "SELECT * from products WHERE ID = " + r.Form.Get("product_id")
+	rows, err := db.Query(query)
+	if err != nil {
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+	}
+	for rows.Next() {
+		if err := rows.Scan(&product.ID, &product.Name, &product.Price); err != nil {
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+			return
+		} else {
+			products = append(products, product)
+		}
+	}
+
+	if len(products) == 0 {
+		newProd, errQuery := db.Exec("INSERT INTO products (id, name, price) VALUES (?, ?, ?)", transaction.ProductID, "", 0)
+		if errQuery != nil {
+			SendErrorResponse(404, "Query Inser Porduct Error", http.StatusBadRequest, w)
+			return
+		}
+		prodNum, _ := newProd.RowsAffected()
+		if prodNum == 0 {
+			SendErrorResponse(404, "Query Inser ProductError", http.StatusBadRequest, w)
+		}
+	}
+
+	result, _ := db.Exec("insert into transaction (UserID, ProductID, Quantity) values (?, ?, ?)",
+		transaction.UserID, transaction.ProductID, transaction.Quantity)
+
+	num, _ := result.RowsAffected()
+
+	var response TransactionResponse
+	if num != 0 {
+		response.Status = 200
+		response.Message = "Success"
+		response.Data = transaction
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	} else {
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+	}
 }

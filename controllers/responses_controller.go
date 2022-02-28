@@ -16,7 +16,7 @@ func SendErrorResponse(status int, errMsg string, header int, w http.ResponseWri
 
 func SendSuccessResponse(status int, msg string, header int, w http.ResponseWriter) {
 	var response GeneralResponse
-	response.Status = 200
+	response.Status = status
 	response.Message = msg
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
