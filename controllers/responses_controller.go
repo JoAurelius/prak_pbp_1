@@ -5,28 +5,19 @@ import (
 	"net/http"
 )
 
-func EmptyArrayErrorResponse(w http.ResponseWriter) {
+func SendErrorResponse(status int, errMsg string, header int, w http.ResponseWriter) {
 	var response GeneralResponse
-	response.Status = 204
-	response.Message = "Error array is empty"
+	response.Status = status
+	response.Message = errMsg
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(header)
 	json.NewEncoder(w).Encode(response)
 }
 
-func sendSuccessResponse(w http.ResponseWriter) {
+func SendSuccessResponse(status int, msg string, header int, w http.ResponseWriter) {
 	var response GeneralResponse
-	response.Status = 200
-	response.Message = "Success"
+	response.Status = status
+	response.Message = msg
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
-
-func QeuryErrorResponse(w http.ResponseWriter) {
-	var response GeneralResponse
-	response.Status = 400
-	response.Message = "Error array is empty"
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(response)
 }

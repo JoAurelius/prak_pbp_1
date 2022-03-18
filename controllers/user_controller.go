@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -16,7 +17,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.Query(query)
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		return
 	}
 
@@ -24,7 +25,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	var users []User
 	for rows.Next() {
 		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address); err != nil {
-			QeuryErrorResponse(w)
+			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 			return
 		} else {
 			users = append(users, user)
@@ -45,7 +46,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 
 }
@@ -73,7 +74,7 @@ func InsertNewUser(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 
@@ -92,9 +93,9 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	_, errQuery := db.Exec("DELETE FROM users WHERE id=?", userID)
 
 	if errQuery == nil {
-		sendSuccessResponse(w)
+		SendSuccessResponse(200, "Delete Success", http.StatusAccepted, w)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -102,27 +103,24 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	err := r.ParseForm()
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 		return
 	}
-	var user User
-	user.Name = r.Form.Get("name")
-	user.Age, _ = strconv.Atoi(r.Form.Get("age"))
-	user.Address = r.Form.Get("address")
+
 	vars := mux.Vars(r)
-	userID := vars["user_id"]
+	var user User = GetUser(vars["user_id"], w)
+	if (r.Form.Get("name")) != "" {
+		user.Name = r.Form.Get("name")
+	}
+	if r.Form.Get("address") != "" {
+		user.Address = r.Form.Get("address")
+	}
+	var temp, _ = strconv.Atoi(r.Form.Get("age"))
+	if temp != 0 {
+		user.Age, _ = strconv.Atoi(r.Form.Get("age"))
+	}
 
-	if user.Name == "" {
-		user.Name = GetUser(userID, w).Name
-	}
-	if user.Age == 0 {
-		user.Age = GetUser(userID, w).Age
-	}
-	if user.Address == "" {
-		user.Address = GetUser(userID, w).Address
-	}
-
-	result, _ := db.Exec("UPDATE users SET name = ?, age = ?, address = ? WHERE id = ?", user.Name, user.Age, user.Address, userID)
+	result, _ := db.Exec("UPDATE users SET name = ?, age = ?, address = ? WHERE id = ?", user.Name, user.Age, user.Address, user.ID)
 
 	num, _ := result.RowsAffected()
 
@@ -134,7 +132,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	} else {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
 	}
 }
 func GetUser(user_id string, w http.ResponseWriter) User {
@@ -144,12 +142,33 @@ func GetUser(user_id string, w http.ResponseWriter) User {
 	query := "SELECT * from users WHERE ID = " + user_id
 	rows, err := db.Query(query)
 	if err != nil {
-		QeuryErrorResponse(w)
+		SendErrorResponse(404, "Query Error ID NOT FOUN", http.StatusBadRequest, w)
 	}
 	for rows.Next() {
-		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address); err != nil {
-			QeuryErrorResponse(w)
+		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address, &user.Email, &user.Password); err != nil {
+			SendErrorResponse(404, "ID NOT FOUND", http.StatusBadRequest, w)
 		}
 	}
 	return user
+}
+func Login(w http.ResponseWriter, r *http.Request) {
+	db := Connect()
+	defer db.Close()
+	err := r.ParseForm()
+	if err != nil {
+		return
+	}
+
+	var email = r.Form.Get("email")
+	var password = r.Form.Get("password")
+	vars := mux.Vars(r)
+	var user = GetUser(vars["user_id"], w)
+
+	fmt.Print(email)
+	fmt.Print(password)
+	if user.Password == password && user.Email == email {
+		SendSuccessResponse(200, "Login Success", http.StatusAccepted, w)
+	} else {
+		SendErrorResponse(400, "Login Failed.\n Recheck your credential", http.StatusBadRequest, w)
+	}
 }
