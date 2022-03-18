@@ -167,8 +167,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	fmt.Print(email)
 	fmt.Print(password)
 	if user.Password == password && user.Email == email {
+		user.UserType = 0
+		generateToken(w, user.ID, user.Name, user.UserType)
 		SendSuccessResponse(200, "Login Success", http.StatusAccepted, w)
 	} else {
 		SendErrorResponse(400, "Login Failed.\n Recheck your credential", http.StatusBadRequest, w)
 	}
+}
+
+func logout(w http.ResponseWriter, r *http.Request) {
+	resetUserToken(w)
+
+	SendSuccessResponse(200, "logout success", 200, w)
 }
