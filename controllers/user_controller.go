@@ -25,7 +25,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	var users []User
 	for rows.Next() {
 		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address); err != nil {
-			SendErrorResponse(404, "Query Error", http.StatusBadRequest, w)
+			SendErrorResponse(404, "Query Error/Empty", http.StatusBadRequest, w)
 			return
 		} else {
 			users = append(users, user)
@@ -145,7 +145,7 @@ func GetUser(user_id string, w http.ResponseWriter) User {
 		SendErrorResponse(404, "Query Error ID NOT FOUN", http.StatusBadRequest, w)
 	}
 	for rows.Next() {
-		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address, &user.Email, &user.Password); err != nil {
+		if err := rows.Scan(&user.ID, &user.Name, &user.Age, &user.Address, &user.Email, &user.Password, &user.UserType); err != nil {
 			SendErrorResponse(404, "ID NOT FOUND", http.StatusBadRequest, w)
 		}
 	}
@@ -167,7 +167,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	fmt.Print(email)
 	fmt.Print(password)
 	if user.Password == password && user.Email == email {
-		user.UserType = 0
 		generateToken(w, user.ID, user.Name, user.UserType)
 		SendSuccessResponse(200, "Login Success", http.StatusAccepted, w)
 	} else {

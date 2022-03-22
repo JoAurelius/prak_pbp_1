@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -33,15 +34,56 @@ func generateToken(w http.ResponseWriter, id int, name string, userType int) {
 		Expires:  tokenExpiryTime,
 		Secure:   false,
 		HttpOnly: false,
+		Path:     "/",
 	})
 }
 
 func resetUserToken(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     tokenName,
-		Value:    "",
-		Expires:  time.Now(),
-		Secure:   false,
-		HttpOnly: false,
+		Name:    tokenName,
+		Value:   "",
+		Expires: time.Now(),
+		// Secure:   false,
+		// HttpOnly: false,
+		Path: "/",
 	})
+}
+
+func Authenticate(next http.HandlerFunc, accessType int) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		isValidate := validateUserToken(r, accessType)
+		if !isValidate {
+			SendSuccessResponse(401, "not autorized", 401, w)
+		} else {
+			next.ServeHTTP(w, r)
+		}
+	})
+}
+
+func validateUserToken(r *http.Request, accessType int) bool {
+	isAccessTokenValid, id, email, userType := validateTokenFromCookies(r)
+	fmt.Print(id, email, userType, isAccessTokenValid)
+
+	if isAccessTokenValid {
+		isUservalid := userType == accessType
+		if isUservalid {
+			return true
+		}
+	}
+	return false
+}
+
+func validateTokenFromCookies(r *http.Request) (bool, int, string, int) {
+	cookie, err := r.Cookie(tokenName)
+	if err == nil {
+		accessToken := cookie.Value
+		accessClaim := &Claims{}
+		parseToken, err := jwt.ParseWithClaims(accessToken, accessClaim, func(accessToken *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+		if err == nil && parseToken.Valid {
+			return true, accessClaim.ID, accessClaim.Name, accessClaim.UserType
+		}
+	}
+	return false, -1, "", -1
 }

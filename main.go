@@ -11,11 +11,12 @@ import (
 
 func main() {
 	router := mux.NewRouter()
-
+	//Access Type 1: User, 2 Admin
 	router.HandleFunc("/users", controllers.GetAllUsers).Methods("GET")
+	// router.HandleFunc("/users", controllers.Authenticate(controllers.GetAllUsers, 1)).Methods("GET")
 	router.HandleFunc("/products", controllers.GetAllProducts).Methods("GET")
 	// router.HandleFunc("/transactions", controllers.GetAllTransaction).Methods("GET")
-	router.HandleFunc("/transactions", controllers.GetAllDetailedTransaction).Methods("GET")
+	router.HandleFunc("/transactions", controllers.Authenticate(controllers.GetAllDetailedTransaction, 1)).Methods("GET")
 	router.HandleFunc("/transactions/{transaction_id}", controllers.GetDetailedTransaction).Methods("GET")
 	router.HandleFunc("/users/{user_id}/transactions", controllers.GetDetailedTransactionFromUser).Methods("GET")
 	router.HandleFunc("/transactions/users/{user_id}", controllers.GetDetailedTransactionFromUser).Methods("GET")
@@ -27,7 +28,8 @@ func main() {
 	router.HandleFunc("/users", controllers.InsertNewUser).Methods("POST")
 	router.HandleFunc("/products", controllers.InserProduct).Methods("POST")
 	router.HandleFunc("/transactions", controllers.InsertTransaction).Methods("POST")
-	router.HandleFunc("/users/{user_id}", controllers.Login).Methods("POST")
+
+	router.HandleFunc("/login/{user_id}", controllers.Login).Methods("POST")
 
 	router.HandleFunc("/users/{user_id}", controllers.UpdateUser).Methods("PUT")
 	router.HandleFunc("/products/{products_id}", controllers.UpdateProduct).Methods("PUT")
